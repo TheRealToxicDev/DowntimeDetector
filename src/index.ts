@@ -63,7 +63,67 @@ export class DownDetector extends EventEmitter {
         });
 
         const fetchFunction = new Promise((resolve, reject) => {
-            
+            fetch(this.url, { headers: this.headers })
+            .then(res => {
+                resolve({
+                    statusCode: res.status,
+                    statusText: res.statusText,
+                    ping: Date.now() - startPing
+                })
+            }).catch(err => reject(err));
         })
+
+        Promise.race([fetchFunction, timeout])
+         .then((result: any) => {
+            this.ping = result.ping;
+
+            if (result.statusCode > 299) {
+                this.failures++;
+                console.log(`Monitor Failure: ${this.failures}`);
+
+                if (this.failures > this.retries) {
+                    this.emitOutage(result.statusCode, result.statusText);
+                }
+            } else {
+                this.failures = 0;
+                this.available = true;
+                this.uptime = Date.now() - this.startTime;
+                this.lastSuccessCheck = Date.now()
+				this.emitUp(result.statusCode, result.statusText)
+            }
+         }).catch((error) => {
+
+            if (error.message.match('timeout')) {
+                this.failures++;
+                console.log(`Monitor Failure: ${this.failures}`);
+
+                if (this.failures > this.retries) {
+                    this.emitOutage(undefined, 'timeout');
+                }
+            }
+            else {
+                if (error.message.match('Only absolute URLs are supported')) return this.emit('error', TypeError('INVALID_PARAMETER Only absolute URLs are supported'))
+                if (error.message.match('ECONNREFUSED')) return this.emit('error', TypeError(`INVALID_PARAMETER Unknown host ${this.url}`))
+                this.emit('error', error)
+            }
+         })
     }
+
+    private emitOutage(statusCode?: number, statusText?: string) {
+        this.available = false;
+        this.unavailability = Date.now() - this.lastSuccessCheck;
+
+        const outage: IOutage = {
+            type: 'outage',
+            statusCode: statusCode || undefined,
+            statusText: statusText || undefined,
+            url: this.url,
+            ping: this.ping,
+            unavailability: this.unavailability
+        }
+
+        this.emit('outage', outage);
+    }
+
+    
 }
