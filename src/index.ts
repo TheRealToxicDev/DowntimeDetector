@@ -125,5 +125,64 @@ export class DownDetector extends EventEmitter {
         this.emit('outage', outage);
     }
 
-    
+    private emitUp(statusCode?: number, statusText?: string) {
+        this.available = false;
+        this.unavailability = Date.now() - this.lastSuccessCheck;
+
+        const up: IUp = {
+            type: 'up',
+            statusCode: statusCode || undefined,
+            statusText: statusText || undefined,
+            url: this.url,
+            ping: this.ping,
+            uptime: this.uptime
+        }
+
+        this.emit('up', up);
+    }
+
+    setInterval(newInterval: number): (boolean) {
+        if (!newInterval) throw new Error(`MISSING_PARAMETER: Please provide a valid Interval Value greater then ${config.minInterval}`);
+        if (newInterval < config.minInterval) throw new RangeError(`INVALID_PARAMETER: Interval must be greater then ${config.minInterval}`);
+        this.interval = newInterval;
+        return true;
+    }
+
+    setURL(newURL: string | number): (boolean) {
+        if (!newURL) throw new Error(`MISSING_PARAMETER: Please provide a new URL to monitor`);
+        if (typeof newURL !== 'string') throw new TypeError(`INVALID_PARAMETER: new URL should be a valid string`);
+        this.url = newURL;
+        return true;
+    }
+
+    start(): boolean {
+		if (!this.url) throw new Error("MISSING_PARAMETER: Please provide a valid URL to monitor")
+		this.intervalFunction = setInterval(() => { this.fetchURL() }, this.interval)
+		return true;
+	}
+
+    restart(): boolean {
+        clearInterval(this.intervalFunction);
+        this.emit('restart');
+        this.start();
+        return true;
+    }
+
+    stop(): boolean {
+        clearInterval(this.intervalFunction);
+        this.emit('stopped', { reason: 'Stopped by client' });
+        return true;
+    }
+
+    get infos() {
+        return {
+            "url": this.url,
+			"interval": this.interval,
+			"timeout": this.timeout,
+			"available": this.available,
+			"ping": this.ping,
+			"uptime:": this.uptime,
+			"unavailability": this.unavailability
+        }
+    }
 }
