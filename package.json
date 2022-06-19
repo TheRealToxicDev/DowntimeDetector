@@ -1,0 +1,34 @@
+{
+    "name": "downtime-detector",
+    "version": "0.0.1",
+    "description": "Monitor your favorite services.",
+    "main": "build/index.js",
+    "scripts": {
+      "prebuild": "rm -rf build",
+      "build:watch": "tsc --watch",
+      "test-code": "node ./build/test/test.js",
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/TheRealToxicDev/DowntimeDetector.git"
+    },
+    "bugs": {
+      "url": "https://github.com/TheRealToxicDev/DowntimeDetector/issues"
+    },
+    "keywords": [
+      "pinger",
+      "ping",
+      "monitor",
+      "monitoring"
+    ],
+    "author": "Toxic Dev <https://toxicdev.me>",
+    "license": "MIT",
+    "devDependencies": {
+      "@types/node": "^18.0.0",
+      "@types/node-fetch": "^2.6.2"
+    },
+    "dependencies": {
+      "node-fetch": "^3.2.6"
+    }
+  }
