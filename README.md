@@ -10,13 +10,13 @@ Simple module that allows you to easily monitor websites, and create a status pa
 With npm :
 
 ```sh-session
-npm install downtime-detector
+COMING SOON
 ```
 
 With yarn :
 
 ```sh-session
-yarn add downtime-detector
+COMING SOON
 ```
 
 ## Usage
